@@ -1,0 +1,38 @@
+[
+  {
+    "scenario_id": "task_goa_cafe",
+    "reference_query": "Goa March 2025 small cafe",
+    "target_photo_id": "img_20250314_cafe_goa",
+    "expected_bounds": ["2025-03-01T00:00:00Z", "2025-03-31T23:59:59Z"]
+  },
+  {
+    "scenario_id": "task_med_screenshot",
+    "reference_query": "screenshot medicine last December",
+    "target_photo_id": "scr_20251218_prescription",
+    "expected_bounds": ["2025-12-01T00:00:00Z", "2025-12-31T23:59:59Z"]
+  },
+  {
+    "scenario_id": "task_thanksgiving",
+    "reference_query": "Thanksgiving around 5 years ago",
+    "target_photo_id": "img_20211125_thanksgiving",
+    "expected_bounds": ["2021-11-20T00:00:00Z", "2021-11-30T23:59:59Z"]
+  },
+  {
+    "scenario_id": "task_wedding_dave",
+    "reference_query": "Dave wedding 2023",
+    "target_photo_id": "img_20231118_wedding_dave",
+    "expected_bounds": ["2023-11-01T00:00:00Z", "2023-11-30T23:59:59Z"]
+  },
+  {
+    "scenario_id": "task_tax_receipt",
+    "reference_query": "receipt April 2024",
+    "target_photo_id": "doc_20240412_flight_invoice",
+    "expected_bounds": ["2024-04-01T00:00:00Z", "2024-04-30T23:59:59Z"]
+  },
+  {
+    "scenario_id": "task_yellow_suitcase",
+    "reference_query": "yellow suitcase beach trip 2023",
+    "target_photo_id": "img_20230715_yellow_suitcase",
+    "expected_bounds": ["2023-07-01T00:00:00Z", "2023-07-31T23:59:59Z"]
+  }
+]
