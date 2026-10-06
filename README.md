@@ -9,6 +9,13 @@
 
 ---
 
+## 🌐 Live Interactive Prototype
+
+The prototype is deployed and can be tested immediately in your browser:
+👉 **[Launch AnchorJump on Streamlit Community Cloud](https://anchorjump-ai-native-mvp-2mdrty4zrns2gzvpkwuith.streamlit.app/)**
+
+---
+
 ## 🚀 Overview
 
 **AnchorJump** translates vague, incomplete human episodic recall (e.g., *"Goa trip March 2025 small cafe"*, *"London 2024 july"*, *"screenshot medicine last December"*) into a tight, chronologically bounded photo neighborhood in Google Photos.
