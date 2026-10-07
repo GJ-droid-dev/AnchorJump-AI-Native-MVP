@@ -40,6 +40,9 @@ def render_ambient_filters(
     if not facet_state:
         return
 
+    reset_count = st.session_state.get("reset_count", 0)
+    full_id = f"{query_id}_{reset_count}"
+
     # Compute current active filters
     active_filters = FacetController.compute_active_filters(facet_state)
     curr_year = active_filters.get("year")
@@ -74,7 +77,7 @@ def render_ambient_filters(
                 if year_str in YEAR_OPTIONS:
                     default_year_idx = YEAR_OPTIONS.index(year_str)
 
-            year_key = f"sel_year_{query_id}"
+            year_key = f"sel_year_{full_id}"
             def on_year_change():
                 val = st.session_state[year_key]
                 target = int(val) if val != "Auto / Any Year" else None
@@ -108,7 +111,7 @@ def render_ambient_filters(
                 if m_name in MONTH_OPTIONS:
                     default_month_idx = MONTH_OPTIONS.index(m_name)
 
-            month_key = f"sel_month_{query_id}"
+            month_key = f"sel_month_{full_id}"
             def on_month_change():
                 val = st.session_state[month_key]
                 target = MONTH_OPTIONS.index(val) if val != "Auto / Any Month" else None
@@ -139,7 +142,7 @@ def render_ambient_filters(
             curr_media_label = MEDIA_DISPLAY_MAP.get(curr_media.lower(), "All Media")
             default_media_idx = MEDIA_OPTIONS.index(curr_media_label) if curr_media_label in MEDIA_OPTIONS else 0
 
-            media_key = f"sel_media_{query_id}"
+            media_key = f"sel_media_{full_id}"
             def on_media_change():
                 val = st.session_state[media_key]
                 target = REV_MEDIA_MAP.get(val, "all")
@@ -174,7 +177,7 @@ def render_ambient_filters(
                         default_loc_idx = idx
                         break
 
-            loc_key = f"sel_loc_{query_id}"
+            loc_key = f"sel_loc_{full_id}"
             def on_loc_change():
                 val = st.session_state[loc_key]
                 target = val if val != "Auto / Any Location" else None
@@ -203,6 +206,10 @@ def render_ambient_filters(
         # Action bar
         act_c1, act_c2 = st.columns([1, 4])
         with act_c1:
-            if on_reset and st.button("🔄 Reset to AI Defaults", key=f"reset_{query_id}", use_container_width=True):
-                on_reset()
-                st.rerun()
+            if on_reset:
+                st.button(
+                    "🔄 Reset to AI Defaults", 
+                    key=f"reset_{full_id}", 
+                    on_click=on_reset, 
+                    use_container_width=True
+                )

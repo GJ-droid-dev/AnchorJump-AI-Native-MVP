@@ -70,12 +70,19 @@ benchmarks = [
     ("💊 Medicine Screenshot", "screenshot medicine last December"),
     ("🦃 Thanksgiving 2021", "Thanksgiving 2021 family reunion")
 ]
+def select_benchmark(b_query):
+    st.session_state.query = b_query
+    execute_search()
+
 for i, (label, b_query) in enumerate(benchmarks):
     with quick_cols[i]:
-        if st.button(label, key=f"bench_{i}", use_container_width=True):
-            st.session_state.query = b_query
-            execute_search()
-            st.rerun()
+        st.button(
+            label, 
+            key=f"bench_{i}", 
+            on_click=select_benchmark, 
+            args=(b_query,), 
+            use_container_width=True
+        )
 
 if st.session_state.result and st.session_state.facet_state:
     res = st.session_state.result
