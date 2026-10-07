@@ -44,7 +44,8 @@ class TimelineSlicer:
 
     def slice_timeline(self, start_iso: Optional[str] = None, end_iso: Optional[str] = None, 
                        year: Optional[int] = None, month: Optional[int] = None,
-                       media_type: str = "all", limit: int = 500) -> List[Dict[str, Any]]:
+                       media_type: str = "all", location_name: Optional[str] = None,
+                       limit: int = 500) -> List[Dict[str, Any]]:
         query = "SELECT raw_json FROM photos WHERE 1=1"
         params = []
         
@@ -67,6 +68,12 @@ class TimelineSlicer:
         if media_type and media_type != "all":
             query += " AND media_type = ?"
             params.append(media_type)
+            
+        if location_name and location_name not in ("all", "All Locations"):
+            # Match the city or prefix (e.g., 'Goa' in 'Goa, India')
+            loc_keyword = location_name.split(',')[0].strip()
+            query += " AND location_name LIKE ?"
+            params.append(f"%{loc_keyword}%")
             
         query += " ORDER BY timestamp ASC LIMIT ?"
         params.append(limit)

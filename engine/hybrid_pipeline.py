@@ -13,7 +13,8 @@ class HybridPipeline:
         self.parser = AnchorParser(llm_client)
         
     def process_query(self, query: str, ref_date_iso: str, 
-                      override_state: Optional[FacetOverrideState] = None) -> NeighborhoodResult:
+                      override_state: Optional[FacetOverrideState] = None,
+                      parsed_anchor: Optional[ParsedAnchor] = None) -> NeighborhoodResult:
         t0 = time.time()
         
         # 1. Parse Anchor (Only if no manual override state is provided)
@@ -21,7 +22,7 @@ class HybridPipeline:
             anchor = self.parser.parse(query, ref_date_iso)
             facet_state = FacetController.init_from_anchor(anchor)
         else:
-            anchor = ParsedAnchor(has_anchor=True, media_type="all") # Mock for manual updates
+            anchor = parsed_anchor or ParsedAnchor(has_anchor=True, media_type="all")
             facet_state = override_state
             
         # 2. Compute Active Filters
@@ -34,14 +35,15 @@ class HybridPipeline:
             end_iso=filters.get("end_iso"),
             year=filters.get("year"),
             month=filters.get("month"),
-            media_type=filters.get("media_type", "all")
+            media_type=filters.get("media_type", "all"),
+            location_name=filters.get("location_name")
         )
         sql_latency = time.time() - t_sql_0
         
         # 4. Widener (Graceful Fallback if neighborhood < 5)
         widened = False
         if len(photos_raw) < 5 and (filters.get("start_iso") or filters.get("year")):
-            if filters.get("media_type") != "all":
+            if filters.get("media_type") != "all" or filters.get("location_name"):
                 photos_raw = self.slicer.slice_timeline(
                     start_iso=filters.get("start_iso"),
                     end_iso=filters.get("end_iso"),
@@ -65,11 +67,22 @@ class HybridPipeline:
         target_found = any(p.photo.is_ground_truth_target for p in scored)
         scroll_depth = next((i for i, p in enumerate(scored) if p.photo.is_ground_truth_target), None)
         
+        import calendar
+        if filters.get("year") and filters.get("month") and 1 <= filters["month"] <= 12:
+            m_name = calendar.month_name[filters["month"]]
+            banner = f"Jumped to {m_name} {filters['year']} ({len(scored)} photos)"
+        elif filters.get("year"):
+            banner = f"Jumped to Year {filters['year']} ({len(scored)} photos)"
+        elif filters.get("location_name"):
+            banner = f"Jumped to {filters['location_name']} ({len(scored)} photos)"
+        else:
+            banner = f"Found {len(scored)} photos matching your criteria"
+            
         return NeighborhoodResult(
             query_text=query,
             parsed_anchor=anchor,
             facet_chips=facet_state.chips,
-            banner_text=f"Found {len(scored)} photos matching your criteria",
+            banner_text=banner,
             total_library_photos=self.slicer.count_total(),
             neighborhood_size=len(scored),
             widened_window=widened,

@@ -36,11 +36,25 @@ def execute_search():
         from engine.facet_controller import FacetController
         st.session_state.facet_state = FacetController.init_from_anchor(res.parsed_anchor)
 
+from components.facet_chips import render_ambient_filters
+
 def execute_override():
     if not st.session_state.query or not st.session_state.facet_state:
         return
-    res = pipeline.process_query(st.session_state.query, Config.REFERENCE_DATE, st.session_state.facet_state)
+    res = pipeline.process_query(
+        st.session_state.query, 
+        Config.REFERENCE_DATE, 
+        st.session_state.facet_state,
+        parsed_anchor=st.session_state.result.parsed_anchor if st.session_state.result else None
+    )
     st.session_state.result = res
+
+def reset_to_inferred():
+    if not st.session_state.result or not st.session_state.result.parsed_anchor:
+        return
+    from engine.facet_controller import FacetController
+    st.session_state.facet_state = FacetController.init_from_anchor(st.session_state.result.parsed_anchor)
+    execute_override()
 
 col1, col2 = st.columns([3, 1])
 with col1:
@@ -48,25 +62,31 @@ with col1:
 with col2:
     st.button("Search", on_click=execute_search, use_container_width=True)
 
+st.write("##### ⚡ Quick Benchmark Scenarios:")
+quick_cols = st.columns(4)
+benchmarks = [
+    ("🏖️ Goa Café 2025", "Goa March 2025 small cafe"),
+    ("🇬🇧 London July 2024", "London 2024 july"),
+    ("💊 Medicine Screenshot", "screenshot medicine last December"),
+    ("🦃 Thanksgiving 2021", "Thanksgiving 2021 family reunion")
+]
+for i, (label, b_query) in enumerate(benchmarks):
+    with quick_cols[i]:
+        if st.button(label, key=f"bench_{i}", use_container_width=True):
+            st.session_state.query = b_query
+            execute_search()
+            st.rerun()
+
 if st.session_state.result and st.session_state.facet_state:
     res = st.session_state.result
     
-    st.write("### Ambient Filters")
-    if not st.session_state.facet_state.chips:
-        st.caption("No temporal or media facets inferred.")
-    else:
-        chip_cols = st.columns(len(st.session_state.facet_state.chips) + 1)
-        for idx, chip in enumerate(st.session_state.facet_state.chips):
-            with chip_cols[idx]:
-                is_active = st.checkbox(
-                    f"{chip.label}", 
-                    value=chip.is_active, 
-                    key=f"chip_{chip.chip_id}_{res.query_text}"
-                )
-                if is_active != chip.is_active:
-                    st.session_state.facet_state.chips[idx].is_active = is_active
-                    execute_override()
-                    st.rerun()
+    query_id = str(abs(hash(res.query_text)))
+    render_ambient_filters(
+        st.session_state.facet_state,
+        query_id=query_id,
+        on_override=execute_override,
+        on_reset=reset_to_inferred
+    )
 
     if res.widened_window:
         st.warning(f"Neighborhood too small. Automatically widened search window. ({res.processing_latency_ms:.0f}ms)")
